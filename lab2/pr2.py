@@ -1,11 +1,10 @@
-def twoSum(nums, target):
-    nums_map = {}
+def two_sum(nums, target):
+    num_x = {}
     for index, num in enumerate(nums):
         complement = target - num
-        if complement in nums_map:
-            return [nums_map[complement], index]
-        nums_map[num] = index
-
-    return None  
-
+        if complement in num_x:
+            return [num_x[complement], index]
+        num_x[num] = index
+    print("нет подходящих слагаемых для заданной суммы.")
+    return None
 
