@@ -5,28 +5,15 @@
 ##  Код `pr1.py`
 
 ```
-def twoSum(nums, target):
-    nums_map = {}
+def two_sum(nums, target):
+    num_x = {}
     for index, num in enumerate(nums):
         complement = target - num
-        if complement in nums_map:
-            return [nums_map[complement], index]
-        nums_map[num] = index
-
-    return None  
-
-nums1 = [2, 7, 11, 15]
-target1 = 9
-print(twoSum(nums1, target1)) 
-
-nums2 = [3, 2, 4]
-target2 = 6
-print(twoSum(nums2, target2))  
-
-nums3 = [3, 3]
-target3 = 6
-print(twoSum(nums3, target3))
-
+        if complement in num_x:
+            return [num_x[complement], index]
+        num_x[num] = index
+    print("нет подходящих слагаемых для заданной суммы.")
+    return None
 ```
 **Код содержит:**
 
@@ -38,7 +25,7 @@ print(twoSum(nums3, target3))
 
 ```
 import unittest
-
+from pr2 import twoSum
 # Функция, которую будем тестировать
 def add(a, b):
     return a + b
@@ -46,16 +33,17 @@ def add(a, b):
 # Тесты
 class TestMath(unittest.TestCase):
     def test_add_positive(self):
-        self.assertEqual(add(2, 3), 5)
+        self.assertEqual(sorted(twoSum([2,7,6], 9)), [0,1])
 
     def test_add_negative(self):
-        self.assertEqual(add(-1, -3), -4)
+        self.assertEqual(sorted(twoSum([5, 4, 11, 8], 13)), [0, 3])
 
     def test_add_zero(self):
-        self.assertEqual(add(0, 5), 5)
+        self.assertEqual(sorted(twoSum([1, 10, 12, 9, 13], 14)), [0, 4])
 
 # Запуск тестов
 unittest.main(argv=[''], verbosity=2, exit=False)
+
 ```
 **Код содержит:** 
 
