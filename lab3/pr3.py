@@ -1,77 +1,63 @@
-from pprint import pprint
+def gen_bin_tree(height: int, root, left_expr: str, right_expr: str):
+    """
+    Рекурсивно генерирует бинарное дерево в виде словаря.
+    """
+    if height == 0:
+        return {"value": root}
 
-def gen_bin_tree(height=6, root=5, left_func=None, right_func=None):
-    if left_func is None:
-        left_func = lambda x: x ** 2
-    if right_func is None:
-        right_func = lambda x: x - 2
+    local_vars = {"root": root}
 
-    if height <= 0:
-        return None
-
-    left_child = gen_bin_tree(height - 1, left_func(root), left_func, right_func)
-    right_child = gen_bin_tree(height - 1, right_func(root), left_func, right_func)
+    try:
+        left_val = eval(left_expr, {"__builtins__": {}}, local_vars)
+        right_val = eval(right_expr, {"__builtins__": {}}, local_vars)
+    except Exception as e:
+        raise ValueError(f"Ошибка при вычислении выражения: {e}")
 
     return {
-        'root': root,
-        'left': left_child,
-        'right': right_child
+        "value": root,
+        "left": gen_bin_tree(height - 1, left_val, left_expr, right_expr),
+        "right": gen_bin_tree(height - 1, right_val, left_expr, right_expr)
     }
 
 
-def print_tree_structure(tree, level=0, prefix="Root: "):
-    if tree is None:
-        return
+def main():
+    print("=== Генератор бинарного дерева ===")
+    print("Root = 5; height = 6, left_leaf = root**2, right_leaf = root-2")
+    print("Нажмите Enter для использования значений по умолчанию.\n")
 
-    indent = "    " * level
-    print(f"{indent}{prefix}{tree['root']}")
+    try:
+        # Ввод корня
+        root_input = input("Введите значение корня [по умолчанию: 5]: ").strip()
+        root = float(root_input) if root_input != "" else 5.0
 
-    if tree['left'] is not None:
-        print_tree_structure(tree['left'], level + 1, "L--- ")
-    if tree['right'] is not None:
-        print_tree_structure(tree['right'], level + 1, "R--- ")
+        # Ввод высоты
+        height_input = input("Введите высоту дерева (height, >= 0) [по умолчанию: 6]: ").strip()
+        height = int(height_input) if height_input != "" else 6
+        if height < 0:
+            print("Высота не может быть отрицательной. Установлено значение 0.")
+            height = 0
 
+        # Фиксированные формулы
+        left_expr = "root**2"
+        right_expr = "root - 2"
 
-def calculate_tree_stats(tree):
-    if tree is None:
-        return 0, 0
+        # Генерация дерева
+        tree = gen_bin_tree(height, root, left_expr, right_expr)
 
-    left_count, left_height = calculate_tree_stats(tree['left'])
-    right_count, right_height = calculate_tree_stats(tree['right'])
+        print("\nБинарное дерево:")
+        import pprint
+        pprint.pprint(tree, width=50, sort_dicts=False)
 
-    total_nodes = 1 + left_count + right_count
-    height = 1 + max(left_height, right_height)
-
-    return total_nodes, height
+    except KeyboardInterrupt:
+        print("\nПрограмма прервана пользователем.")
+    except ValueError as e:
+        if "could not convert" in str(e):
+            print("\nОшибка: введено некорректное число.")
+        else:
+            print(f"\nОшибка: {e}")
+    except Exception as e:
+        print(f"\nНеожиданная ошибка: {e}")
 
 
 if __name__ == "__main__":
-    print("=" * 50)
-    print("Генерация бинарного дерева (в виде словаря)")
-    print("=" * 50)
-
-    print("\n1. Дерево с параметрами по умолчанию (height=6, root=5):")
-    tree1 = gen_bin_tree()
-    pprint(tree1, width=40, sort_dicts=False)
-
-    print("\n2. Дерево с height=3, root=5:")
-    tree2 = gen_bin_tree(height=3, root=5)
-    pprint(tree2, width=40, sort_dicts=False)
-
-    print("\n3. Дерево с кастомными функциями (height=3, root=10):")
-    tree3 = gen_bin_tree(
-        height=3,
-        root=10,
-        left_func=lambda x: x + 5,
-        right_func=lambda x: x * 3
-    )
-    pprint(tree3, width=40, sort_dicts=False)
-
-    print("\n4. Статистика по деревьям:")
-    for i, tree in enumerate([tree1, tree2, tree3], 1):
-        nodes, height = calculate_tree_stats(tree)
-        print(f"Дерево {i}: узлов = {nodes}, высота = {height}")
-
-    print("\n" + "=" * 50)
-    print("Конец программы")
-    print("=" * 50)
+    main()
