@@ -11,69 +11,103 @@
 ### Код `pr3.py`
 
 ```python
-def gen_bin_tree(height: int, root, left_expr: str, right_expr: str):
-    """
-    Рекурсивно генерирует бинарное дерево в виде словаря.
-    """
-    if height == 0:
-        return {"value": root}
+import pprint
 
-    local_vars = {"root": root}
 
-    try:
-        left_val = eval(left_expr, {"__builtins__": {}}, local_vars)
-        right_val = eval(right_expr, {"__builtins__": {}}, local_vars)
-    except Exception as e:
-        raise ValueError(f"Ошибка при вычислении выражения: {e}")
+def create_tree_node(current_value, depth, left_rule, right_rule):
+    """
+    Создаёт узел бинарного дерева рекурсивно.
+
+    Args:
+        current_value: Значение текущего узла.
+        depth: Оставшаяся глубина (высота) дерева.
+        left_rule: Функция для вычисления значения левого потомка.
+        right_rule: Функция для вычисления значения правого потомка.
+
+    Returns:
+        dict: Представление узла дерева.
+    """
+    # Устанавливаем минимальную глубину 1, если передано меньшее значение
+    if depth < 1:
+        depth = 1
+    if depth == 1:
+        return {"value": current_value}
+
+    left_value = left_rule(current_value)
+    right_value = right_rule(current_value)
 
     return {
-        "value": root,
-        "left": gen_bin_tree(height - 1, left_val, left_expr, right_expr),
-        "right": gen_bin_tree(height - 1, right_val, left_expr, right_expr)
+        "value": current_value,
+        "left": create_tree_node(left_value, depth - 1, left_rule, right_rule),
+        "right": create_tree_node(right_value, depth - 1, left_rule, right_rule)
     }
 
 
-def main():
-    print("=== Генератор бинарного дерева ===")
-    print("Root = 5; height = 6, left_leaf = root**2, right_leaf = root-2")
-    print("Нажмите Enter для использования значений по умолчанию.\n")
+def make_lambda_from_expr(expression_str):
+    """
+    Создаёт безопасную лямбду из строкового выражения.
 
-    try:
-        # Ввод корня
-        root_input = input("Введите значение корня [по умолчанию: 5]: ").strip()
-        root = float(root_input) if root_input != "" else 5.0
+    Args:
+        expression_str (str): Строковое выражение для преобразования в лямбду.
 
-        # Ввод высоты
-        height_input = input("Введите высоту дерева (height, >= 0) [по умолчанию: 6]: ").strip()
-        height = int(height_input) if height_input != "" else 6
-        if height < 0:
-            print("Высота не может быть отрицательной. Установлено значение 0.")
-            height = 0
+    Returns:
+        function: Лямбда-функция от 'x'.
 
-        # Фиксированные формулы
-        left_expr = "root**2"
-        right_expr = "root - 2"
+    Raises:
+        ValueError: Если в выражении используется недопустимое имя.
+    """
+    allowed = {
+        "abs": abs,
+        "round": round,
+        "min": min,
+        "max": max,
+        "pow": pow,
+    }
 
-        # Генерация дерева
-        tree = gen_bin_tree(height, root, left_expr, right_expr)
+    compiled_expr = compile(f"lambda x: {expression_str}", "<expr>", "eval")
+    for name in compiled_expr.co_names:
+        if name not in allowed and name != "x":
+            raise ValueError(f"Недопустимое имя: {name}")
 
-        print("\nБинарное дерево:")
-        import pprint
-        pprint.pprint(tree, width=50, sort_dicts=False)
+    return eval(compiled_expr, {"builtins": {}}, allowed)
 
-    except KeyboardInterrupt:
-        print("\nПрограмма прервана пользователем.")
-    except ValueError as e:
-        if "could not convert" in str(e):
-            print("\nОшибка: введено некорректное число.")
-        else:
-            print(f"\nОшибка: {e}")
-    except Exception as e:
-        print(f"\nНеожиданная ошибка: {e}")
+
+def run_tree_builder():
+    """
+    Основная функция для запуска интерактивного построения дерева.
+    """
+    print("Если не ввести значение, будут использованы настройки по умолчанию:\n"
+          "  root = 5, height = 6, левый = root^2, правый = root-2\n")
+
+    # Ввод root
+    root_input = input("Введите значение root (по умолчанию 5): ").strip()
+    root = float(root_input) if root_input else 5.0
+
+    # Ввод высоты
+    height_input = input("Введите значение height (целое число, >=1, по умолчанию 6): ").strip()
+    height = int(height_input) if height_input else 6
+
+    # Ввод выражений для потомков
+
+    left_input = input("Формула для левого (root**2): ").strip()
+    left_expr = left_input if left_input else "root**2"
+    left_expr = left_expr.replace("root", "x")  # сразу заменяем
+
+    right_input = input("Формула для правого (root-2): ").strip()
+    right_expr = right_input if right_input else "root-2"
+    right_expr = right_expr.replace("root", "x")
+
+    left_func = make_lambda_from_expr(left_expr)
+    right_func = make_lambda_from_expr(right_expr)
+
+    tree = create_tree_node(root, height, left_func, right_func)
+
+    print("\nБинарное дерево:")
+    pprint.pprint(tree, width=50, sort_dicts=False)
 
 
 if __name__ == "__main__":
-    main()
+    run_tree_builder()
 ```
 
 **Код содержит:**
