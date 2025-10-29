@@ -1,65 +1,34 @@
 import unittest
-from pr3 import gen_bin_tree
+from your_module_name import create_tree_node, make_lambda_from_expr  # замените your_module_name на имя вашего файла
 
 
-class TestGenBinTree(unittest.TestCase):
+class TestTreeBuilder(unittest.TestCase):
 
-    def test_height_zero(self):
-        """Тест: высота 0 — должен вернуться узел с корнем."""
-        result = gen_bin_tree(0, 10, "root", "root")
-        expected = {"value": 10}
-        self.assertEqual(result, expected)
+    def test_tree_depth_1(self):
+        """Глубина 1: только корень."""
+        tree = create_tree_node(5, 1, lambda x: x, lambda x: x)
+        self.assertEqual(tree, {"value": 5})
 
-    def test_height_one(self):
-        """Тест: высота 1 — узел с двумя потомками."""
-        result = gen_bin_tree(1, 3, "root * 2", "root + 1")
-        expected = {
-            "value": 3,
-            "left": {"value": 6},
-            "right": {"value": 4}
-        }
-        self.assertEqual(result, expected)
+    def test_tree_depth_2(self):
+        """Глубина 2 с простыми правилами."""
+        tree = create_tree_node(2, 2, lambda x: x * 2, lambda x: x + 1)
+        expected = {"value": 2, "left": {"value": 4}, "right": {"value": 3}}
+        self.assertEqual(tree, expected)
 
-    def test_height_two(self):
-        """Тест: высота 2 — более глубокое дерево."""
-        result = gen_bin_tree(2, 2, "root ** 2", "root - 1")
-        expected = {
-            "value": 2,
-            "left": {
-                "value": 4,
-                "left": {"value": 16},
-                "right": {"value": 3}
-            },
-            "right": {
-                "value": 1,
-                "left": {"value": 1},
-                "right": {"value": 0}
-            }
-        }
-        self.assertEqual(result, expected)
+    def test_min_depth_enforced(self):
+        """Глубина < 1 приводится к 1."""
+        tree = create_tree_node(10, 0, lambda x: x, lambda x: x)
+        self.assertEqual(tree, {"value": 10})
 
-    def test_custom_expressions(self):
-        """Тест: выражения root**2 и root-2."""
-        result = gen_bin_tree(2, 5, "root**2", "root-2")
-        expected = {
-            "value": 5,
-            "left": {
-                "value": 25,
-                "left": {"value": 625},
-                "right": {"value": 23}
-            },
-            "right": {
-                "value": 3,
-                "left": {"value": 9},
-                "right": {"value": 1}
-            }
-        }
-        self.assertEqual(result, expected)
+    def test_valid_lambda_expression(self):
+        """Корректное выражение преобразуется в функцию."""
+        f = make_lambda_from_expr("x**2 + 1")
+        self.assertEqual(f(3), 10)
 
-    def test_invalid_expression(self):
-        """Тест: неверное выражение должно вызвать ValueError."""
+    def test_invalid_lambda_expression(self):
+        """Недопустимое имя в выражении вызывает ValueError."""
         with self.assertRaises(ValueError):
-            gen_bin_tree(1, 5, "root /// 2", "root + 1")
+            make_lambda_from_expr("x + y")  # 'y' не разрешено
 
 
 if __name__ == "__main__":
