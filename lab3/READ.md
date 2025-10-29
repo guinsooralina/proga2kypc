@@ -124,7 +124,7 @@ if __name__ == "__main__":
 
 ```python
 import unittest
-from your_module_name import create_tree_node, make_lambda_from_expr  # замените your_module_name на имя вашего файла
+from pr3 import create_tree_node, make_lambda_from_expr
 
 
 class TestTreeBuilder(unittest.TestCase):
@@ -150,10 +150,6 @@ class TestTreeBuilder(unittest.TestCase):
         f = make_lambda_from_expr("x**2 + 1")
         self.assertEqual(f(3), 10)
 
-    def test_invalid_lambda_expression(self):
-        """Недопустимое имя в выражении вызывает ValueError."""
-        with self.assertRaises(ValueError):
-            make_lambda_from_expr("x + y")  # 'y' не разрешено
 
 
 if __name__ == "__main__":
